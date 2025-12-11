@@ -1,9 +1,13 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+
 import "../styles/global.css";
-import Link from "next/link"; // Import Link
-import { ShoppingCart, User } from 'lucide-react'; // Assuming lucide-react is installed
+import Link from "next/link";
+import { ShoppingCart, User } from 'lucide-react';
+import ChatbotWidget from '@/components/ChatbotWidget';
+import NotificationDropdown from '@/components/NotificationDropdown'; // NEW
+import NotificationToast from '@/components/NotificationToast'; // NEW
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,10 +33,9 @@ export default function RootLayout({
               <Link href="/products" className="text-gray-700 hover:text-indigo-600 font-medium">
                 Products
               </Link>
+              <NotificationDropdown /> {/* NEW: Notification Component */}
               <Link href="/cart" className="relative text-gray-700 hover:text-indigo-600">
                 <ShoppingCart size={24} />
-                {/* You can add a dynamic cart item count here later */}
-                {/* <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span> */}
               </Link>
               <Link href="/dashboard" className="text-gray-700 hover:text-indigo-600">
                 <User size={24} />
@@ -43,6 +46,8 @@ export default function RootLayout({
         <main>
           {children}
         </main>
+        <NotificationToast />
+        <ChatbotWidget />
       </body>
     </html>
   );

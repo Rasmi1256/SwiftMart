@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+// Represents a delivery in the system.
+model Delivery {
+  // Unique primary key for the Delivery model
+  id String @id @default(uuid())
+
+  // ID of the order being delivered
+  orderId String @unique
+
+  // ID of the driver assigned to the delivery
+  driverId String
+
+  // Relation to the assigned driver
+  driver Driver @relation(fields: [driverId], references: [id])
+
+  // Current status of the delivery
+  status String @default("pending") // pending, assigned, picked_up, delivered, cancelled
+
+  // Estimated delivery time
+  estimatedDeliveryTime DateTime?
+
+  // Actual delivery time
+  actualDeliveryTime DateTime?
+
+  // Delivery address
+  deliveryAddress Json // { street, city, state, zip, lat, lng }
+
+  // Notes or special instructions
+  notes String?
+
+  // Timestamps for record management
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([orderId])
+  @@index([driverId])
+  @@index([status])
+}
+
+// Represents a driver in the delivery system.
+model Driver {
+  // Unique primary key for the Driver model
+  id String @id @default(uuid())
+
+  // ID from the external User Service
+  userId String @unique
+
+  // Driver's name
+  name String
+
+  // Type of vehicle
+  vehicleType String
+
+  // Current status
+  status String @default("available") // available, on_delivery, offline
+
+  // Current location
+  currentLocation Json?
+
+  // Assigned deliveries
+  assignedDeliveries Delivery[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([userId])
+  @@index([status])
+}

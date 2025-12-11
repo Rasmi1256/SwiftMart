@@ -1,4 +1,5 @@
 // src/components/Header.tsx
+// src/components/Header.tsx
 'use client';
 
 import Link from 'next/link';
@@ -23,7 +24,10 @@ export default function Header() {
           <Link href="/orders" className="text-white hover:text-indigo-200 font-medium">
             Orders
           </Link>
-          {/* Add other admin links here later, e.g., Products, Users */}
+          <Link href="/inventory" className="text-white hover:text-indigo-200 font-medium"> {/* NEW */}
+            Inventory
+          </Link>
+          {/* Add other admin links here later, e.g., Users, Products (for admin editing) */}
           <button
             onClick={handleLogout}
             className="px-3 py-1 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 focus:ring-offset-indigo-700 text-sm"

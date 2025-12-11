@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+ 
+
+
+}
+
+// Represents an inventory item in the system.
+model InventoryItem {
+  // Unique primary key for the InventoryItem model
+  id String @id @default(uuid())
+
+  // ID of the product this inventory item represents
+  productId String @unique
+
+  // Current quantity in stock
+  quantity Int @default(0)
+
+  // Location of the inventory (warehouse, store, etc.)
+  location String
+
+  // Minimum stock level before alert
+  minStockLevel Int @default(0)
+
+  // Maximum stock level for capacity planning
+  maxStockLevel Int?
+
+  // Stock movements associated with this item
+  stockMovements StockMovement[]
+
+  // Timestamps for record management
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes
+  @@index([productId])
+  @@index([location])
+  @@index([quantity])
+}
+
+// Represents a stock movement (in/out) for audit trail
+model StockMovement {
+  // Unique primary key for the StockMovement model
+  id String @id @default(uuid())
+
+  // ID of the inventory item this movement affects
+  inventoryItemId String
+
+  // Inventory item relation
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  // Quantity change (positive for in, negative for out)
+  quantityChange Int
+
+  // Reason for the movement (sale, restock, adjustment, etc.)
+  reason String
+
+  // Additional notes
+  notes String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Indexes
+  @@index([inventoryItemId])
+  @@index([createdAt])
+}

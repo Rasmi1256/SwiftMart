@@ -58,7 +58,13 @@ export interface Product {
   _id: string;
   name: string;
   description: string;
-  price: number;
+  price: {
+    current: number; // This will be the base price from DB. Dynamic price will override this in response.
+    unit: string;
+    currency?: string;
+    previous?: number; // Optional: for showing strike-through price
+    effectiveDate?: Date; // Optional: when this base price became effective
+  };
   unit: string;
   category: Category; // Populated category
   subCategory?: Category; // Populated sub-category
@@ -71,6 +77,8 @@ export interface Product {
   dimensions?: { length: number; width: number; height: number; unit: string };
   tags?: string[];
   isAvailable: boolean;
+  stockQuantity: number; // NEW
+  isLowStock: boolean;
   averageRating?: number;
   reviewCount?: number;
   createdAt: string;
@@ -86,13 +94,13 @@ export interface ProductsResponse {
 
 export interface CartItem {
   id: string; // order_item ID
-  order_id: string;
-  product_id: string; // MongoDB Product ID
+  orderId: string;
+  productId: string; // MongoDB Product ID
   product_name: string;
   product_image_url?: string;
   unit_price: number;
   quantity: number;
-  created_at: string;
+  createdAt: string;
 }
 
 export interface Order {
@@ -110,4 +118,97 @@ export interface Order {
 export interface PlaceOrderPayload {
   shippingAddressId: string;
   paymentMethod: string;
+}
+export interface RecommendedProduct {
+  _id: string;
+  name: string;
+  price: {
+    current: number;
+    unit: string;
+    currency: string;
+  };
+  unit: string;
+  imageUrl: string;
+  category: string; // The category name
+}
+export interface ChatMessageData {
+  sender: 'user' | 'bot';
+  text: string;
+  timestamp: Date;
+}
+
+export interface ChatbotRequestPayload {
+  user_message: string;
+  userId?: string;
+  authToken?: string;
+}
+
+export interface ChatbotResponseData {
+  response: string;
+  orderId?: string;
+  orderStatus?: string;
+}
+export interface NotificationType {
+  _id: string;
+  userId: string;
+  type: string;
+  message: string;
+  data?: { [key: string]: any };
+  read: boolean;
+  createdAt: string;
+}
+
+export interface NotificationData {
+  message: string;
+  notifications: NotificationType[];
+}
+// src/types/index.ts
+
+// ... (existing interfaces and types)
+
+export interface ProductIndex {
+  productId: string;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+  tags: string[];
+  imageUrl: string;
+  availableStock: number;
+  isAvailable: boolean;
+  score: number;
+  relevanceScore?: number;
+}
+
+export interface SearchPagination {
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalResults: number;
+}
+
+export interface ProductSearchResponse {
+  message: string;
+  query: {
+    q: string;
+    category: string;
+    sortBy: string;
+    total: number;
+  };
+  products: ProductIndex[];
+  pagination: SearchPagination;
+}
+export interface OrderType {
+  orderId: string;
+  items: CartItem[];
+  userId: string;
+  status: 'pending' | 'placed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  createdAt: string;
+}
+
+export interface CartDetails extends OrderType {
+  // NEW fields from IOrder model:
+  couponCode?: string;
+  discountAmount: number;
+  finalTotal: number;
 }

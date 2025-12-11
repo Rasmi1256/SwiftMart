@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+ 
+}
+
+// Represents a driver in the logistics system.
+// A driver is a specific user (linked via userId) who handles deliveries.
+model Driver {
+  // Unique primary key for the Driver model
+  id String @id @default(uuid())
+
+  // ID from the external User Service, ensuring one driver profile per user.
+  // The 'P2002' error handling in the createDriver controller suggests this is unique.
+  userId String @unique
+
+  // Driver's name
+  name String
+
+  // Type of vehicle used for deliveries (e.g., 'car', 'motorcycle', 'van')
+  vehicleType String
+
+  // Current status of the driver.
+  // Controller uses: 'available', 'on_delivery'.
+  status String @default("available")
+
+  // Array of orders currently assigned to the driver.
+  // Stored as a JSON list. The controller logic treats this as an array of objects:
+  // [{ orderId: string, customerId: string, deliveryLocation: any }]
+  assignedOrders Json @default("[]")
+
+  // Current location of the driver.
+  // Stored as a JSON object: { lat: number, lng: number }.
+  currentLocation Json? // Optional, as location updates are dynamic.
+
+  // Timestamps for record management
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

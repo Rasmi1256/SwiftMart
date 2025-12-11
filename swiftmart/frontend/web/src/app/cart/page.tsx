@@ -1,186 +1,313 @@
-// src/app/cart/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { api, ApiError } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
+
+import {
+  ShoppingCart,
+  MinusCircle,
+  PlusCircle,
+  Trash2,
+  ArrowRight,
+} from 'lucide-react';
 import Link from 'next/link';
-import { api } from '@/lib/api';
-import AuthGuard from '@/components/AuthGuard';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import { Order, CartItem } from '@/types';
 import Image from 'next/image';
-import { Trash2, Plus, Minus } from 'lucide-react';
+
+// Types aligned with backend GET /api/orders/cart
+interface CartItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  imageUrl?: string;
+}
+
+type CartDetails = {
+  orderId: string;
+  items: CartItem[];
+};
 
 export default function CartPage() {
-  const [cart, setCart] = useState<Order | null>(null);
+  const [cart, setCart] = useState<CartDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const { isAuthenticated, user } = useAuth();
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    setError(null);
+    setError('');
+    setMessage('');
+
     try {
-      const response = await api<{ message: string; cart: Order | null }>('/cart');
-      setCart(response.cart);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch cart.');
-      console.error('Fetch cart error:', err);
+      // backend may return null if no pending cart
+      const response = await api<CartDetails | null>('/orders/cart');
+      setCart(response);
+    } catch (err: unknown) {
+      console.error('Failed to fetch cart:', err);
+
+      if (err instanceof ApiError) {
+        // 404 or explicit "no cart" handling if you ever add it on backend
+        if (err.status === 404) {
+          setCart(null);
+        } else {
+          setError(err.body || 'Failed to load cart. Please try again.');
+        }
+      } else if (err instanceof Error) {
+        setError(err.message || 'Failed to load cart. Please try again.');
+      } else {
+        setError('Failed to load cart. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     fetchCart();
-  }, []);
+  }, [fetchCart]);
 
-  const handleUpdateQuantity = async (itemId: string, currentQuantity: number, delta: number) => {
-    const newQuantity = currentQuantity + delta;
-    if (newQuantity <= 0) {
-      // If quantity becomes 0 or less, remove the item
-      handleRemoveItem(itemId);
-      return;
-    }
+  const updateQuantity = async (productId: string, quantity: number) => {
+    if (!user || !cart) return;
+
     try {
-      setLoading(true);
-      await api(`/cart/update/${itemId}`, {
+      await api('/orders/cart/item', {
         method: 'PUT',
-        body: JSON.stringify({ quantity: newQuantity }),
+        body: JSON.stringify({ productId, quantity }),
       });
-      await fetchCart(); // Re-fetch cart to get updated state
-    } catch (err: any) {
-      setError(err.message || 'Failed to update item quantity.');
-      console.error('Update quantity error:', err);
-    } finally {
-      setLoading(false);
+      setMessage(`Quantity updated for product ${productId}.`);
+      fetchCart(); // Re-fetch cart to update totals
+    } catch (err: unknown) {
+      console.error('Failed to update quantity:', err);
+      if (err instanceof ApiError) {
+        setError(err.body || 'Failed to update quantity.');
+      } else if (err instanceof Error) {
+        setError(err.message || 'Failed to update quantity.');
+      } else {
+        setError('Failed to update quantity.');
+      }
     }
   };
 
-  const handleRemoveItem = async (itemId: string) => {
+  const removeItem = async (productId: string) => {
+    if (!user) return;
+
     try {
-      setLoading(true);
-      await api(`/cart/remove/${itemId}`, {
+      await api(`/orders/cart/item/${productId}`, {
         method: 'DELETE',
       });
-      await fetchCart(); // Re-fetch cart to get updated state
-    } catch (err: any) {
-      setError(err.message || 'Failed to remove item from cart.');
-      console.error('Remove item error:', err);
-    } finally {
-      setLoading(false);
+      setMessage('Item removed from cart.');
+      fetchCart(); // Re-fetch cart
+    } catch (err: unknown) {
+      console.error('Failed to remove item:', err);
+      if (err instanceof ApiError) {
+        setError(err.body || 'Failed to remove item.');
+      } else if (err instanceof Error) {
+        setError(err.message || 'Failed to remove item.');
+      } else {
+        setError('Failed to remove item.');
+      }
     }
   };
 
-  const handleProceedToCheckout = () => {
-    if (cart && cart.total_amount > 0) {
-      router.push('/checkout');
-    } else {
-      setError('Your cart is empty. Add some products before proceeding to checkout.');
-    }
-  };
+  const calculateSubtotal = (item: CartItem) => item.price * item.quantity;
+  const totalAmount =
+    cart?.items.reduce((acc, item) => acc + calculateSubtotal(item), 0) ?? 0;
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // ---------------- UI states ----------------
 
-  if (error) {
+  if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-6">{error}</p>
-          <Link href="/products" className="text-indigo-600 hover:underline">Continue Shopping</Link>
-        </div>
+      <div className="max-w-4xl mx-auto p-8 text-center mt-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">Cart</h2>
+        <p className="text-lg text-gray-600">
+          Please{' '}
+          <Link href="/login" className="text-indigo-600 hover:underline">
+            log in
+          </Link>{' '}
+          to view your cart.
+        </p>
       </div>
     );
   }
 
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 text-center mt-12">
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          Loading Cart...
+        </h2>
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-500 mx-auto" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 text-center mt-12">
+        <h2 className="text-3xl font-bold text-red-600 mb-4">Error</h2>
+        <p className="text-lg text-red-500">{error}</p>
+      </div>
+    );
+  }
+
+  if (!cart || cart.items.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 text-center mt-12">
+        <ShoppingCart size={64} className="text-indigo-400 mx-auto mb-6" />
+        <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          Your Cart is Empty
+        </h2>
+        <p className="text-lg text-gray-600 mb-6">
+          Start shopping now to fill it up!
+        </p>
+        <Link
+          href="/products"
+          className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-300 shadow-md"
+        >
+          Browse Products
+        </Link>
+      </div>
+    );
+  }
+
+  // -------------- Main render --------------
+
   return (
-    <AuthGuard>
-      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Your Shopping Cart</h1>
+    <div className="max-w-6xl mx-auto p-4 sm:p-8">
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-8 flex items-center">
+        <ShoppingCart size={32} className="mr-3 text-indigo-600" /> Shopping
+        Cart
+      </h1>
 
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
+      {message && (
+        <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg text-sm">
+          {message}
+        </div>
+      )}
 
-          {!cart || cart.items.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-gray-600 text-lg mb-4">Your cart is currently empty.</p>
-              <Link href="/products" className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                Start Shopping
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-4">
-                {cart.items.map((item: CartItem) => (
-                  <div key={item.id} className="flex items-center border-b border-gray-200 pb-4 last:border-b-0">
-                    <div className="relative w-20 h-20 mr-4 flex-shrink-0">
-                      <Image
-                        src={item.product_image_url || `https://placehold.co/80x80/E0F7FA/000000?text=${encodeURIComponent(item.product_name)}`}
-                        alt={item.product_name || 'Product image'}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-md"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://placehold.co/80x80/E0F7FA/000000?text=${encodeURIComponent(item.product_name)}`;
-                        }}
-                      />
-                    </div>
-                    <div className="flex-grow">
-                      <h2 className="text-lg font-semibold text-gray-800">{item.product_name}</h2>
-                      <p className="text-gray-600">Unit Price: ${ item.unit_price}</p>
-                      <div className="flex items-center mt-2">
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
-                          className="p-1 border border-gray-300 rounded-md hover:bg-gray-100"
-                        >
-                          <Minus size={16} />
-                        </button>
-                        <span className="mx-3 text-lg font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
-                          className="p-1 border border-gray-300 rounded-md hover:bg-gray-100"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="text-right flex flex-col items-end">
-                      <p className="text-lg font-bold text-indigo-600">${item.unit_price && item.quantity ? (item.unit_price * item.quantity).toFixed(2) : '0.00'}</p>
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="mt-2 text-red-500 hover:text-red-700 flex items-center text-sm"
-                      >
-                        <Trash2 size={16} className="mr-1" /> Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Cart Items List */}
+        <div className="lg:col-span-2 space-y-4">
+          {cart.items.map((item) => (
+            <div
+              key={item.productId}
+              className="flex flex-col sm:flex-row items-center border rounded-lg p-4"
+            >
+              <Image
+                src={
+                  item.imageUrl ||
+                  `https://placehold.co/80x80/6366f1/ffffff?text=${item.name.substring(
+                    0,
+                    1,
+                  )}`
+                }
+                alt={item.name}
+                width={80}
+                height={80}
+                className="w-20 h-20 object-cover rounded-lg mr-4 flex-shrink-0 mb-4 sm:mb-0"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = `https://placehold.co/80x80/6366f1/ffffff?text=${item.name.substring(
+                    0,
+                    1,
+                  )}`;
+                }}
+                unoptimized
+              />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-semibold text-gray-800 truncate">
+                  {item.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Price: ${item.price.toFixed(2)}
+                </p>
               </div>
-
-              <div className="mt-8 pt-4 border-t border-gray-200 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-gray-800">Total:</h2>
-                <p className="text-2xl font-bold text-indigo-700">${cart.total_amount ? cart.total_amount.toFixed(2) : '0.00'}</p>
-              </div>
-
-              <div className="mt-6">
+              <div className="flex items-center space-x-2 my-4 sm:my-0 sm:ml-4">
                 <button
-                  onClick={handleProceedToCheckout}
-                  className="w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={() =>
+                    updateQuantity(item.productId, item.quantity - 1)
+                  }
+                  disabled={item.quantity <= 1}
+                  className="p-1 text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed transition"
+                  aria-label="Decrease quantity"
                 >
-                  Proceed to Checkout
+                  <MinusCircle size={24} />
+                </button>
+                <span className="w-8 text-center font-bold text-gray-700">
+                  {item.quantity}
+                </span>
+                <button
+                  onClick={() =>
+                    updateQuantity(item.productId, item.quantity + 1)
+                  }
+                  className="p-1 text-indigo-600 hover:text-indigo-800 transition"
+                  aria-label="Increase quantity"
+                >
+                  <PlusCircle size={24} />
                 </button>
               </div>
-            </>
-          )}
+              <div className="w-24 text-right font-bold text-gray-900 text-lg sm:ml-4">
+                ${calculateSubtotal(item).toFixed(2)}
+              </div>
+              <button
+                onClick={() => removeItem(item.productId)}
+                className="p-1 text-red-500 hover:text-red-700 transition mt-4 sm:mt-0 sm:ml-6"
+                aria-label="Remove item"
+              >
+                <Trash2 size={24} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Order Summary */}
+        <div className="lg:col-span-1">
+          <div className="bg-white p-6 rounded-xl shadow-2xl sticky top-24 border border-indigo-100">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-3">
+              Order Summary
+            </h2>
+            <div className="space-y-3">
+              <div className="flex justify-between text-gray-600">
+                <span>Subtotal ({cart.items.length} items)</span>
+                <span>${totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Shipping Fee</span>
+                <span>$5.00</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Tax (10%)</span>
+                <span>${(totalAmount * 0.1).toFixed(2)}</span>
+              </div>
+              <div className="pt-4 border-t border-indigo-200">
+                <div className="flex justify-between text-xl font-extrabold text-indigo-600">
+                  <span>Order Total</span>
+                  <span>${(totalAmount * 1.1 + 5.0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Proceed to Checkout Button */}
+            <Link
+              href={`/checkout?orderId=${cart.orderId}&totalAmount=${(
+                totalAmount * 1.1 +
+                5.0
+              ).toFixed(2)}`}
+              className="mt-6 w-full flex items-center justify-center px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg"
+            >
+              Proceed to Checkout <ArrowRight size={20} className="ml-2" />
+            </Link>
+          </div>
         </div>
       </div>
-    </AuthGuard>
+    </div>
   );
 }

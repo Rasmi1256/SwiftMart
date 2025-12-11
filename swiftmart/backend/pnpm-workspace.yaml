@@ -1,0 +1,3 @@
+# c:/SWIFTMART/SWIFTSMART/swiftmart/backend/pnpm-workspace.yaml
+packages:
+  - 'packages/*'

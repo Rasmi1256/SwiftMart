@@ -1,0 +1,13 @@
+- [x] Create inventoryRoutes.ts with API endpoints
+- [x] Ensure src/db.ts exists
+- [x] Ensure src/server.ts exists
+- [x] Create other necessary config files (middlewares, config, etc.)
+- [ ] Generate Prisma client
+- [ ] # Test the service endpoints
+- [x] Create inventoryController.ts with CRUD operations
+- [x] Create inventoryRoutes.ts with API endpoints
+- [x] Ensure src/db.ts exists
+- [x] Ensure src/server.ts exists
+- [x] Create other necessary config files (middlewares, config, etc.)
+- [x] Generate Prisma client
+- [ ] Test the service endpoints

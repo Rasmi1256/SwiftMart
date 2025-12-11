@@ -127,14 +127,21 @@ import { AuthResponse } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [id]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +151,7 @@ export default function RegisterPage() {
     try {
       const data: AuthResponse = await api('/users/register', {
         method: 'POST',
-        body: JSON.stringify({ email, password, firstName, lastName, phoneNumber }),
+        body: JSON.stringify(formData),
       });
       setAuthToken(data.token);
       router.push('/dashboard');
@@ -220,8 +227,8 @@ export default function RegisterPage() {
               id="email"
               className="mt-1 block w-full px-4 py-2 border border-orange-200 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200
                 focus:shadow-[0_0_8px_2px_rgba(255,122,89,0.3)]"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               required
             />
           </motion.div>
@@ -232,8 +239,8 @@ export default function RegisterPage() {
               id="password"
               className="mt-1 block w-full px-4 py-2 border border-orange-200 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200
                 focus:shadow-[0_0_8px_2px_rgba(255,122,89,0.3)]"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
               required
             />
           </motion.div>
@@ -244,8 +251,8 @@ export default function RegisterPage() {
               id="firstName"
               className="mt-1 block w-full px-4 py-2 border border-orange-200 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200
                 focus:shadow-[0_0_8px_2px_rgba(255,122,89,0.3)]"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              value={formData.firstName}
+              onChange={handleChange}
             />
           </motion.div>
           <motion.div variants={inputItemVariants}>
@@ -255,8 +262,8 @@ export default function RegisterPage() {
               id="lastName"
               className="mt-1 block w-full px-4 py-2 border border-orange-200 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200
                 focus:shadow-[0_0_8px_2px_rgba(255,122,89,0.3)]"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              value={formData.lastName}
+              onChange={handleChange}
             />
           </motion.div>
           <motion.div variants={inputItemVariants}>
@@ -266,8 +273,8 @@ export default function RegisterPage() {
               id="phoneNumber"
               className="mt-1 block w-full px-4 py-2 border border-orange-200 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all duration-200
                 focus:shadow-[0_0_8px_2px_rgba(255,122,89,0.3)]"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
+              value={formData.phoneNumber}
+              onChange={handleChange}
             />
           </motion.div>
           <motion.button

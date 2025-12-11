@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       const token = localStorage.getItem('authToken'); 
-      const data: AuthResponse = await api('/api/users/login', {
+      const data: AuthResponse = await api('/users/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
         headers: {

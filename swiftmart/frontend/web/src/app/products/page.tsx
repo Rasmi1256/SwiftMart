@@ -1,226 +1,292 @@
 // src/app/products/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { api } from '@/lib/api';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import { Product, ProductsResponse, Category } from '@/types';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { api } from '../../lib/api'; // Use relative path
+import { Search, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
+import { ProductIndex, ProductSearchResponse } from '@/types'; // Assuming we've updated types to include search results
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react'; // Import icon
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+// Mock Categories (In a real app, this would be fetched from the Catalog Service)
+const CATEGORIES = ['All', 'Dairy', 'Produce', 'Snacks', 'Beverages', 'Frozen Goods', 'Home Essentials'];
+
+// Sort Options
+const SORT_OPTIONS = [
+  { value: 'latest', label: 'Latest (Default)' },
+  { value: 'price_asc', label: 'Price: Low to High' },
+  { value: 'price_desc', label: 'Price: High to Low' },
+  { value: 'name_asc', label: 'Name: A to Z' },
+];
+
+export default function ProductSearchPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const productsPerPage = 10; // Matches backend default limit
-  const [cartMessage, setCartMessage] = useState<string | null>(null);
+  const [results, setResults] = useState<ProductIndex[]>([]);
+  const [pagination, setPagination] = useState({ totalResults: 0, totalPages: 0, page: 1 });
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data: Category[] = await api('/categories');
-        setCategories(data);
-      } catch (err: any) {
-        console.error('Failed to fetch categories:', err);
-        setError('Failed to load categories.');
-      }
-    };
-    fetchCategories();
+  // State derived from URL search params
+  const initialQuery = searchParams.get('q') || '';
+  const initialCategory = searchParams.get('category') || 'All';
+  const initialSort = searchParams.get('sort') || 'latest';
+  const initialMinPrice = searchParams.get('minPrice') || '';
+  const initialMaxPrice = searchParams.get('maxPrice') || '';
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
+  const [sortValue, setSortValue] = useState(initialSort);
+  const [minPrice, setMinPrice] = useState(initialMinPrice);
+  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
+  
+  const currentPage = parseInt(searchParams.get('page') || '1');
+
+  // Main data fetching function
+  const fetchProducts = useCallback(async (params: URLSearchParams) => {
+    setLoading(true);
+    setResults([]);
+    const sortValue = params.get('sort') || 'latest_desc';
+    const [sortBy, sortOrder] = sortValue.split('_');
+    
+    params.delete('sort'); // The API uses sortBy/sortOrder, so we remove the combined 'sort' value.
+    params.set('sortBy', sortBy);
+    params.set('sortOrder', sortOrder);
+
+    const apiUrl = `/search?${params.toString()}`;
+    try {
+      const response: ProductSearchResponse = await api(apiUrl);
+
+      setResults(response.products || []);
+      setPagination(response.pagination || { totalResults: 0, totalPages: 0, page: 1 });
+    } catch (error) {
+      console.error('Failed to fetch search results:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  // Effect to fetch data whenever the URL search params change
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const queryParams = new URLSearchParams();
-        if (searchQuery) queryParams.append('search', searchQuery);
-        if (selectedCategory) queryParams.append('category', selectedCategory);
-        queryParams.append('limit', String(productsPerPage));
-        queryParams.append('page', String(currentPage));
+    fetchProducts(searchParams);
+  }, [searchParams, fetchProducts]);
 
-        const data: ProductsResponse = await api(`/products?${queryParams.toString()}`);
-        setProducts(data.products);
-        setTotalPages(data.totalPages);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch products.');
-      } finally {
-        setLoading(false);
+  // This effect synchronizes the local state with the URL's search parameters.
+  // This is crucial for handling browser back/forward navigation correctly.
+  useEffect(() => {
+    setSearchQuery(searchParams.get('q') || '');
+    setActiveCategory(searchParams.get('category') || 'All');
+    setSortValue(searchParams.get('sort') || 'latest');
+    setMinPrice(searchParams.get('minPrice') || '');
+    setMaxPrice(searchParams.get('maxPrice') || '');
+  }, [searchParams]);
+
+  // Helper to update the URL. All state changes that should affect the URL go through here.
+  const updateUrl = useCallback((updates: Record<string, string | number | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null || value === '' || (key === 'page' && value === 1) || (key === 'category' && value === 'All') || (key === 'sort' && value === 'latest')) {
+        params.delete(key);
+      } else {
+        params.set(key, String(value));
       }
-    };
-    fetchProducts();
-  }, [searchQuery, selectedCategory, currentPage]);
+    });
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
-  };
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCategory(e.target.value);
-    setCurrentPage(1); // Reset to first page on new category filter
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleAddToCart = async (productId: string, productName: string) => {
-    console.log(`Adding product to cart: productId=${productId}, productName=${productName}`); // Added logging
-    setCartMessage(null);
-    const token = localStorage.getItem('token');
-    try {
-      await api('/cart/add', {
-        method: 'POST',
-        body: JSON.stringify({ productId, quantity: 1 }),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization' : `Bearer ${token}`,
-         
-        },
-      });
-      setCartMessage(`${productName} added to cart!`);
-      // Optionally, you might want to refetch cart data here or update a global cart state
-    } catch (err: any) {
-      setCartMessage(`Failed to add ${productName} to cart: ${err.message || JSON.stringify(err)}`); // Improved error message
-      console.error('Add to cart error:', err);
-    } finally {
-      setTimeout(() => setCartMessage(null), 3000); // Clear message after 3 seconds
+    // Reset to page 1 if any filter/sort/query changes
+    if (Object.keys(updates).some(k => k !== 'page')) {
+      params.delete('page');
     }
+
+    router.push(`/products?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  // Handle Search Input Submission
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateUrl({ q: searchQuery });
+  };
+  
+  // Handle Filter Application (Price and Category)
+  const handleApplyFilters = () => {
+    updateUrl({ minPrice, maxPrice });
+  };
+  
+  // Handle Page Change
+  const handlePageChange = (newPage: number) => {
+    updateUrl({ page: newPage });
   };
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  // Handlers for immediate updates (category and sort)
+  const handleCategoryChange = (category: string) => {
+    updateUrl({ category });
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
-          <h2 className="text-xl font-semibold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700 mb-6">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    updateUrl({ sort: e.target.value });
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">SwiftMart Products</h1>
+    <div className="max-w-7xl mx-auto p-4 sm:p-8">
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-6">Product Search 🔎</h1>
 
-        {cartMessage && (
-          <div className={`p-3 mb-4 rounded-md text-center ${cartMessage.includes('Failed') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-            {cartMessage}
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      {/* Search Bar */}
+      <form onSubmit={handleSearchSubmit} className="mb-8">
+        <div className="flex items-center bg-white border border-gray-300 rounded-xl shadow-lg overflow-hidden">
           <input
             type="text"
-            placeholder="Search products..."
-            className="flex-grow px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            placeholder="Search for groceries, snacks, or home goods..."
             value={searchQuery}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 p-4 text-lg focus:outline-none"
           />
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
+          <button
+            type="submit"
+            className="p-4 bg-indigo-600 text-white hover:bg-indigo-700 transition duration-300"
+            aria-label="Search"
           >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
-              </option>
-            ))}
-          </select>
+            <Search size={24} />
+          </button>
         </div>
+      </form>
 
-        {products.length === 0 ? (
-          <p className="text-center text-gray-600 text-lg">No products found matching your criteria.</p>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div key={product._id} className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden h-full flex flex-col">
-                  <Link href={`/products/${product._id}`} className="block">
-                    <div className="relative w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <Image
-                        src={product.imageUrl || `https://placehold.co/400x300/E0F7FA/000000?text=${encodeURIComponent(product.name)}`}
-                        alt={product.name}
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-t-lg"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://placehold.co/400x300/E0F7FA/000000?text=${encodeURIComponent(product.name)}`;
-                        }}
-                      />
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Filter Sidebar */}
+        <aside className="w-full lg:w-64 p-6 bg-white rounded-xl shadow-lg flex-shrink-0 sticky top-24 h-fit">
+          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center border-b pb-2">
+            <Filter size={20} className="mr-2 text-indigo-500" /> Filters
+          </h3>
+
+          {/* Category Filter */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-700 mb-2">Category</h4>
+            {CATEGORIES.map(cat => (
+              <button
+                key={cat}
+                onClick={() => handleCategoryChange(cat)}
+                className={`w-full text-left py-2 px-3 rounded-lg transition duration-150 text-sm ${
+                  activeCategory === cat ? 'bg-indigo-500 text-white font-bold' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Price Range Filter */}
+          <div className="mb-6 border-t pt-4">
+            <h4 className="font-semibold text-gray-700 mb-2">Price Range (USD)</h4>
+            <div className="flex space-x-2 mb-3">
+              <input
+                type="number"
+                placeholder="Min"
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+              <input
+                type="number"
+                placeholder="Max"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-1/2 p-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+          
+          <button
+            onClick={handleApplyFilters}
+            className="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition"
+          >
+            Apply Filters
+          </button>
+
+        </aside>
+
+        {/* Search Results Area */}
+        <main className="flex-1">
+          {/* Results Header and Sorting */}
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              {pagination.totalResults} Results Found
+            </h2>
+            
+            <div className="flex items-center space-x-2">
+              <label htmlFor="sort" className="text-gray-700 text-sm">Sort by:</label>
+              <select
+                id="sort"
+                value={sortValue}
+                onChange={handleSortChange}
+                className="py-2 px-3 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 transition"
+              >
+                {SORT_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Product Grid */}
+          {loading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="animate-spin text-indigo-600" size={48} />
+              <p className="ml-3 text-lg text-gray-600">Searching...</p>
+            </div>
+          ) : results.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {results.map((product) => (
+                  <Link href={`/product/${product.productId}`} key={product.productId} className="block group">
+                    <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden border border-gray-100">
+                      <div className="relative w-full h-40">
+                        <Image
+                          fill
+                          src={product.imageUrl || 'https://placehold.co/400x300/e0e7ff/6366f1?text=Image+Missing'}
+                          alt={product.name}
+                          className="object-cover group-hover:scale-105 transition duration-500"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <p className="text-sm font-semibold text-indigo-600 uppercase">{product.category}</p>
+                        <h3 className="text-lg font-bold text-gray-800 mt-1 truncate">{product.name}</h3>
+                        <p className="text-xl font-extrabold text-gray-900 mt-2">${product.price.toFixed(2)}</p>
+                        <p className="text-xs text-green-600 mt-1">{product.availableStock} in stock</p>
+                      </div>
                     </div>
                   </Link>
-                  <div className="p-4 flex-grow flex flex-col">
-                    <Link href={`/products/${product._id}`} className="block">
-                      <h2 className="text-lg font-semibold text-gray-800 mb-1 line-clamp-2">{product.name}</h2>
-                      <p className="text-sm text-gray-600 mb-2">{product.category.name}</p>
-                    </Link>
-                    <p className="text-xl font-bold text-indigo-600 mt-auto">
-                      ${product.price.toFixed(2)} / {product.unit}
-                    </p>
-                    <button
-                      onClick={() => handleAddToCart(product._id, product.name)}
-                      disabled={!product.isAvailable}
-                      className={`mt-3 w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                        product.isAvailable ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' : 'bg-gray-400 cursor-not-allowed'
-                      } focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                    >
-                      <ShoppingCart size={18} className="mr-2" />
-                      {product.isAvailable ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-8">
+              {/* Pagination */}
+              <div className="flex justify-center items-center space-x-4 mt-10">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+                  disabled={currentPage <= 1}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200"
                 >
                   Previous
                 </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-4 py-2 rounded-md ${
-                      currentPage === page
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+                <span className="font-semibold text-gray-700">
+                  Page {currentPage} of {pagination.totalPages}
+                </span>
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50"
+                  disabled={currentPage >= pagination.totalPages}
+                  className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed bg-gray-100 hover:bg-gray-200"
                 >
                   Next
                 </button>
               </div>
-            )}
-          </>
-        )}
+            </>
+          ) : (
+            <div className="p-8 text-center bg-white rounded-xl shadow-lg mt-12">
+              <Search size={48} className="text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">No Products Found</h2>
+              <p className="text-gray-600">Try refining your search or clearing the filters.</p>
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );

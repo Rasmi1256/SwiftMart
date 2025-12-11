@@ -12,6 +12,7 @@
     "autoprefixer": "^10.4.21",
     "cors": "^2.8.5",
     "framer-motion": "^12.16.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.514.0",
     "next": "15.3.3",
     "postcss": "^8.5.4",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

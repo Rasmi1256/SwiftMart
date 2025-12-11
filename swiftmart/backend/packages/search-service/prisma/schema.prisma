@@ -1,0 +1,25 @@
+// datasource db defines the database connection details.
+datasource db {
+  provider = "postgresql"
+  
+}
+
+// generator client block specifies that you want to generate Prisma Client.
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model SearchIndex {
+  id        String   @id @default(cuid()) @map("_id")
+  productId String
+  name      String
+  category  String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([category])
+  @@index([tags])
+}

@@ -5,6 +5,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 interface RequestOptions extends RequestInit {
   token?: string;
+  baseURL?: string;
 }
 
 export const api = async <T>(
@@ -21,7 +22,7 @@ export const api = async <T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${options?.baseURL || API_BASE_URL}${endpoint}`, {
     ...options,
     headers,
   });

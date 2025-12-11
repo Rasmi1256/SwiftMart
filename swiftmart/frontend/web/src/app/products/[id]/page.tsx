@@ -113,7 +113,9 @@ export default function ProductDetailPage() {
               <p className="text-sm text-gray-600">
                 <strong className="font-semibold">Availability:</strong>{' '}
                 <span className={product.isAvailable ? 'text-green-600' : 'text-red-600'}>
-                  {product.isAvailable ? 'In Stock' : 'Out of Stock'}
+                  {product.isAvailable
+                      ? product.isLowStock && product.stockQuantity > 0 ? `Low Stock! (${product.stockQuantity} available)` : `In Stock (${product.stockQuantity} available)`
+                      : 'Out of Stock'}
                 </span>
               </p>
             </div>
