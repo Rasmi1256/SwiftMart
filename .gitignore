@@ -6,9 +6,22 @@
 
 # New structure build outputs
 /build
-/services/*/dist
+
+# All node_modules directories (recursive)
 /services/*/node_modules
+/services/*/*/node_modules
+/services/*/*/*/node_modules
+/swiftmart/**/node_modules
+/frontend/**/node_modules
+
+# All dist directories (recursive)
+/services/*/dist
+/services/*/*/dist
+/swiftmart/**/dist
+
+# Python virtual environments
 /services/*/.venv
+/services/*/*/.venv
 
 # Environment variables
 .env
