@@ -1,0 +1,16 @@
+{
+  "name": "weather-service",
+  "version": "1.0.0",
+  "description": "Weather service for route optimization with weather impact on routing",
+  "main": "src/server.py",
+  "scripts": {
+    "start": "python src/server.py",
+    "dev": "python src/server.py",
+    "test": "pytest"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": ["weather", "routing", "optimization"],
+  "author": "SwiftMart",
+  "license": "ISC"
+}

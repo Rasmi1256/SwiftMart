@@ -9,8 +9,8 @@ export default function AdminHomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect to the orders page as the main admin dashboard
-    router.replace('/orders');
+    // Redirect to the dashboard page as the main admin view
+    router.replace('/dashboard');
   }, [router]);
 
   return <LoadingSpinner />;

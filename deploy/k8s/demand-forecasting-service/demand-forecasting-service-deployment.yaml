@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demand-forecasting-service
+  labels:
+    app: demand-forecasting-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demand-forecasting-service
+  template:
+    metadata:
+      labels:
+        app: demand-forecasting-service
+    spec:
+      containers:
+      - name: demand-forecasting-service
+        image: swiftmart/demand-forecasting-service:latest
+        ports:
+        - containerPort: 8001
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 30
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: demand-forecasting-service
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: demand-forecasting-service
+            topologyKey: kubernetes.io/hostname

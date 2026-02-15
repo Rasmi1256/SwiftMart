@@ -1,0 +1,38 @@
+{
+  "name": "search-service",
+  "version": "1.0.0",
+  "description": "Search service for SwiftMart",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@types/axios": "^0.9.36",
+    "@types/express": "^5.0.3",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^24.7.1",
+    "axios": "^1.12.2",
+    "database": "file:../database",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongoose": "^8.19.1",
+    "nodemon": "^3.1.10",
+    "pg": "^8.13.1",
+    "redis": "^4.7.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  }
+}

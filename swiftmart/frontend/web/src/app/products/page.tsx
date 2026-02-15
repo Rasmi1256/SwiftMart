@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { api } from '../../lib/api'; // Use relative path
 import { Search, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { ProductIndex, ProductSearchResponse } from '@/types'; // Assuming we've updated types to include search results
+import { Product, ProductsResponse } from '@/types';
 import Link from 'next/link';
 
 // Mock Categories (In a real app, this would be fetched from the Catalog Service)
@@ -23,9 +23,9 @@ const SORT_OPTIONS = [
 export default function ProductSearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState<ProductIndex[]>([]);
+  const [results, setResults] = useState<Product[]>([]);
   const [pagination, setPagination] = useState({ totalResults: 0, totalPages: 0, page: 1 });
 
   // State derived from URL search params
@@ -49,19 +49,23 @@ export default function ProductSearchPage() {
     setResults([]);
     const sortValue = params.get('sort') || 'latest_desc';
     const [sortBy, sortOrder] = sortValue.split('_');
-    
+
     params.delete('sort'); // The API uses sortBy/sortOrder, so we remove the combined 'sort' value.
     params.set('sortBy', sortBy);
     params.set('sortOrder', sortOrder);
 
-    const apiUrl = `/search?${params.toString()}`;
+    const apiUrl = `/api/products?${params.toString()}`;
     try {
       const response: ProductSearchResponse = await api(apiUrl);
 
       setResults(response.products || []);
-      setPagination(response.pagination || { totalResults: 0, totalPages: 0, page: 1 });
+      setPagination({
+        totalResults: response.totalProducts,
+        totalPages: response.totalPages,
+        page: response.currentPage
+      });
     } catch (error) {
-      console.error('Failed to fetch search results:', error);
+      console.error('Failed to fetch products:', error);
     } finally {
       setLoading(false);
     }

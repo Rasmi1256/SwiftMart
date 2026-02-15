@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: demand-forecasting-service-pdb
+spec:
+  minAvailable: 70%
+  selector:
+    matchLabels:
+      app: demand-forecasting-service

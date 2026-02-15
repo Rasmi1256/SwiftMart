@@ -1,7 +1,7 @@
 // src/lib/api.ts
 import { getAuthToken } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 interface RequestOptions extends RequestInit {
   token?: string;

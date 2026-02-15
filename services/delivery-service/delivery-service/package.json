@@ -1,0 +1,48 @@
+{
+  "name": "@swiftmart/delivery-service",
+  "version": "1.0.0",
+  "description": "Delivery service for managing deliveries and drivers",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^7.1.0",
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "database": "file:../database",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^8.19.1",
+    "prisma": "^7.1.0",
+    "redis": "^4.6.13",
+    "socket.io": "^4.7.5",
+    "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/helmet": "^0.0.48",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^20.12.12",
+    "nodemon": "^3.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  }
+}

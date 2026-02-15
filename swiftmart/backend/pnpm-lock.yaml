@@ -58,8 +58,8 @@ importers:
         version: 9.0.3
     devDependencies:
       '@prisma/client':
-        specifier: ^7.1.0
-        version: 7.1.0(prisma@5.22.0)(typescript@5.9.3)
+        specifier: ^7.2.0
+        version: 7.2.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
@@ -79,13 +79,44 @@ importers:
         specifier: ^10.25.0
         version: 10.25.0
       prisma:
-        specifier: ^5.22.0
-        version: 5.22.0
+        specifier: ^7.2.0
+        version: 7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
       ts-node-dev:
         specifier: ^2.0.0
         version: 2.0.0(@types/node@20.19.26)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: ^5.3.3
+        version: 5.9.3
+
+  packages/database:
+    dependencies:
+      '@prisma/adapter-pg':
+        specifier: ^7.2.0
+        version: 7.2.0
+      '@prisma/client':
+        specifier: ^7.2.0
+        version: 7.2.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
+      pg:
+        specifier: ^8.16.3
+        version: 8.16.3
+      prisma:
+        specifier: ^7.2.0
+        version: 7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.3
+        version: 22.19.3
+      '@types/pg':
+        specifier: ^8.15.6
+        version: 8.15.6
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.7.2
         version: 5.9.3
 
   packages/delivery-service:
@@ -99,6 +130,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -163,6 +197,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.0.0
         version: 16.6.1
@@ -204,14 +241,17 @@ importers:
   packages/logistics-service:
     dependencies:
       '@prisma/client':
-        specifier: ^5.15.0
-        version: 5.22.0(prisma@5.22.0)
+        specifier: ^7.1.0
+        version: 7.1.0(prisma@5.22.0)(typescript@5.9.3)
       axios:
         specifier: ^1.7.2
         version: 1.13.2
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -227,6 +267,9 @@ importers:
       morgan:
         specifier: ^1.10.0
         version: 1.10.1
+      prisma:
+        specifier: ^5.15.0
+        version: 5.22.0
     devDependencies:
       '@types/cors':
         specifier: ^2.8.17
@@ -246,9 +289,6 @@ importers:
       nodemon:
         specifier: ^3.1.2
         version: 3.1.11
-      prisma:
-        specifier: ^5.22.0
-        version: 5.22.0
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@20.19.26)(typescript@5.9.3)
@@ -267,6 +307,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -336,13 +379,16 @@ importers:
     dependencies:
       '@prisma/client':
         specifier: ^7.1.0
-        version: 7.1.0(prisma@7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
+        version: 7.1.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
       axios:
         specifier: ^1.7.2
         version: 1.13.2
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -387,8 +433,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.11
       prisma:
-        specifier: ^7.1.0
-        version: 7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+        specifier: ^7.2.0
+        version: 7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@20.19.26)(typescript@5.9.3)
@@ -407,6 +453,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -483,6 +532,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -521,8 +573,8 @@ importers:
         specifier: ^5.11.97
         version: 5.11.97
       '@types/node':
-        specifier: ^20.19.26
-        version: 20.19.26
+        specifier: ^20.19.27
+        version: 20.19.27
       nodemon:
         specifier: ^3.1.0
         version: 3.1.11
@@ -534,7 +586,10 @@ importers:
         version: 5.10.0
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@20.19.26)(typescript@5.9.3)
+        version: 10.9.2(@types/node@20.19.27)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
@@ -544,6 +599,9 @@ importers:
       '@prisma/client':
         specifier: ^7.1.0
         version: 7.1.0(prisma@7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
@@ -587,9 +645,9 @@ importers:
 
   packages/search-service:
     dependencies:
-      '@prisma/client':
-        specifier: ^7.1.0
-        version: 7.1.0(prisma@7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
+      '@prisma/adapter-pg':
+        specifier: ^7.2.0
+        version: 7.2.0
       '@types/axios':
         specifier: ^0.9.36
         version: 0.9.36
@@ -605,6 +663,9 @@ importers:
       axios:
         specifier: ^1.12.2
         version: 1.13.2
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
@@ -617,6 +678,9 @@ importers:
       nodemon:
         specifier: ^3.1.10
         version: 3.1.11
+      pg:
+        specifier: ^8.13.1
+        version: 8.16.3
       redis:
         specifier: ^4.7.1
         version: 4.7.1
@@ -627,18 +691,12 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
     devDependencies:
-      prisma:
-        specifier: ^7.1.0
-        version: 7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   packages/user-service:
     dependencies:
-      '@prisma/adapter-pg':
-        specifier: ^7.1.0
-        version: 7.1.0
-      '@prisma/client':
-        specifier: ^7.1.0
-        version: 7.1.0(prisma@7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)
       '@types/pg':
         specifier: ^8.15.6
         version: 8.15.6
@@ -648,6 +706,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      database:
+        specifier: file:../database
+        version: link:../database
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
@@ -715,9 +776,6 @@ importers:
       nodemon:
         specifier: ^3.1.10
         version: 3.1.11
-      prisma:
-        specifier: ^7.1.0
-        version: 7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@22.19.2)(typescript@5.9.3)
@@ -1135,17 +1193,14 @@ packages:
   '@prisma/adapter-pg@7.1.0':
     resolution: {integrity: sha512-DSAnUwkKfX4bUzhkrjGN4IBQzwg0nvFw2W17H0Oa532I5w9nLtTJ9mAEGDs1nUBEGRAsa0c7qsf8CSgfJ4DsBQ==}
 
+  '@prisma/adapter-pg@7.2.0':
+    resolution: {integrity: sha512-euIdQ13cRB2wZ3jPsnDnFhINquo1PYFPCg6yVL8b2rp3EdinQHsX9EDdCtRr489D5uhphcRk463OdQAFlsCr0w==}
+
   '@prisma/client-runtime-utils@7.1.0':
     resolution: {integrity: sha512-39xmeBrNTN40FzF34aJMjfX1PowVCqoT3UKUWBBSP3aXV05NRqGBC3x2wCDs96ti6ZgdiVzqnRDHtbzU8X+lPQ==}
 
-  '@prisma/client@5.22.0':
-    resolution: {integrity: sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA==}
-    engines: {node: '>=16.13'}
-    peerDependencies:
-      prisma: '*'
-    peerDependenciesMeta:
-      prisma:
-        optional: true
+  '@prisma/client-runtime-utils@7.2.0':
+    resolution: {integrity: sha512-dn7oB53v0tqkB0wBdMuTNFNPdEbfICEUe82Tn9FoKAhJCUkDH+fmyEp0ClciGh+9Hp2Tuu2K52kth2MTLstvmA==}
 
   '@prisma/client@7.1.0':
     resolution: {integrity: sha512-qf7GPYHmS/xybNiSOpzv9wBo+UwqfL2PeyX+08v+KVHDI0AlSCQIh5bBySkH3alu06NX9wy98JEnckhMHoMFfA==}
@@ -1159,8 +1214,23 @@ packages:
       typescript:
         optional: true
 
+  '@prisma/client@7.2.0':
+    resolution: {integrity: sha512-JdLF8lWZ+LjKGKpBqyAlenxd/kXjd1Abf/xK+6vUA7R7L2Suo6AFTHFRpPSdAKCan9wzdFApsUpSa/F6+t1AtA==}
+    engines: {node: ^20.19 || ^22.12 || >=24.0}
+    peerDependencies:
+      prisma: '*'
+      typescript: '>=5.4.0'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+      typescript:
+        optional: true
+
   '@prisma/config@7.1.0':
     resolution: {integrity: sha512-Uz+I43Wn1RYNHtuYtOhOnUcNMWp2Pd3GUDDKs37xlHptCGpzEG3MRR9L+8Y2ISMsMI24z/Ni+ww6OB/OO8M0sQ==}
+
+  '@prisma/config@7.2.0':
+    resolution: {integrity: sha512-qmvSnfQ6l/srBW1S7RZGfjTQhc44Yl3ldvU6y3pgmuLM+83SBDs6UQVgMtQuMRe9J3gGqB0RF8wER6RlXEr6jQ==}
 
   '@prisma/debug@5.22.0':
     resolution: {integrity: sha512-AUt44v3YJeggO2ZU5BkXI7M4hu9BF2zzH2iF2V5pyXT/lRTyWiElZ7It+bRH1EshoMRxHgpYg4VB6rCM+mG5jQ==}
@@ -1171,11 +1241,20 @@ packages:
   '@prisma/debug@7.1.0':
     resolution: {integrity: sha512-pPAckG6etgAsEBusmZiFwM9bldLSNkn++YuC4jCTJACdK5hLOVnOzX7eSL2FgaU6Gomd6wIw21snUX2dYroMZQ==}
 
+  '@prisma/debug@7.2.0':
+    resolution: {integrity: sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw==}
+
   '@prisma/dev@0.15.0':
     resolution: {integrity: sha512-KhWaipnFlS/fWEs6I6Oqjcy2S08vKGmxJ5LexqUl/3Ve0EgLUsZwdKF0MvqPM5F5ttw8GtfZarjM5y7VLwv9Ow==}
 
+  '@prisma/dev@0.17.0':
+    resolution: {integrity: sha512-6sGebe5jxX+FEsQTpjHLzvOGPn6ypFQprcs3jcuIWv1Xp/5v6P/rjfdvAwTkP2iF6pDx2tCd8vGLNWcsWzImTA==}
+
   '@prisma/driver-adapter-utils@7.1.0':
     resolution: {integrity: sha512-AlVLzeXkw81+47MvQ9M8DvTiHkRfJ8xzklTbYjpskb0cTTDVHboTI/OVwT6Wcep/bNvfLKJYO0nylBiM5rxgww==}
+
+  '@prisma/driver-adapter-utils@7.2.0':
+    resolution: {integrity: sha512-gzrUcbI9VmHS24Uf+0+7DNzdIw7keglJsD5m/MHxQOU68OhGVzlphQRobLiDMn8CHNA2XN8uugwKjudVtnfMVQ==}
 
   '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2':
     resolution: {integrity: sha512-2PTmxFR2yHW/eB3uqWtcgRcgAbG1rwG9ZriSvQw+nnb7c4uCr3RAcGMb6/zfE88SKlC1Nj2ziUvc96Z379mHgQ==}
@@ -1183,17 +1262,26 @@ packages:
   '@prisma/engines-version@7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba':
     resolution: {integrity: sha512-qZUevUh+yPhGT28rDQnV8V2kLnFjirzhVD67elRPIJHRsUV/mkII10HSrJrhK/U2GYgAxXR2VEREtq7AsfS8qw==}
 
+  '@prisma/engines-version@7.2.0-4.0c8ef2ce45c83248ab3df073180d5eda9e8be7a3':
+    resolution: {integrity: sha512-KezsjCZDsbjNR7SzIiVlUsn9PnLePI7r5uxABlwL+xoerurZTfgQVbIjvjF2sVr3Uc0ZcsnREw3F84HvbggGdA==}
+
   '@prisma/engines@5.22.0':
     resolution: {integrity: sha512-UNjfslWhAt06kVL3CjkuYpHAWSO6L4kDCVPegV6itt7nD1kSJavd3vhgAEhjglLJJKEdJ7oIqDJ+yHk6qO8gPA==}
 
   '@prisma/engines@7.1.0':
     resolution: {integrity: sha512-KQlraOybdHAzVv45KWKJzpR9mJLkib7/TyApQpqrsL7FUHfgjIcy8jrVGt3iNfG6/GDDl+LNlJ84JSQwIfdzxA==}
 
+  '@prisma/engines@7.2.0':
+    resolution: {integrity: sha512-HUeOI/SvCDsHrR9QZn24cxxZcujOjcS3w1oW/XVhnSATAli5SRMOfp/WkG3TtT5rCxDA4xOnlJkW7xkho4nURA==}
+
   '@prisma/fetch-engine@5.22.0':
     resolution: {integrity: sha512-bkrD/Mc2fSvkQBV5EpoFcZ87AvOgDxbG99488a5cexp5Ccny+UM6MAe/UFkUC0wLYD9+9befNOqGiIJhhq+HbA==}
 
   '@prisma/fetch-engine@7.1.0':
     resolution: {integrity: sha512-GZYF5Q8kweXWGfn87hTu17kw7x1DgnehgKoE4Zg1BmHYF3y1Uu0QRY/qtSE4veH3g+LW8f9HKqA0tARG66bxxQ==}
+
+  '@prisma/fetch-engine@7.2.0':
+    resolution: {integrity: sha512-Z5XZztJ8Ap+wovpjPD2lQKnB8nWFGNouCrglaNFjxIWAGWz0oeHXwUJRiclIoSSXN/ptcs9/behptSk8d0Yy6w==}
 
   '@prisma/get-platform@5.22.0':
     resolution: {integrity: sha512-pHhpQdr1UPFpt+zFfnPazhulaZYCUqeIcPpJViYoq9R+D/yw4fjE+CtnsnKzPYm0ddUbeXUzjGVGIRVgPDCk4Q==}
@@ -1204,11 +1292,21 @@ packages:
   '@prisma/get-platform@7.1.0':
     resolution: {integrity: sha512-lq8hMdjKiZftuT5SssYB3EtQj8+YjL24/ZTLflQqzFquArKxBcyp6Xrblto+4lzIKJqnpOjfMiBjMvl7YuD7+Q==}
 
+  '@prisma/get-platform@7.2.0':
+    resolution: {integrity: sha512-k1V0l0Td1732EHpAfi2eySTezyllok9dXb6UQanajkJQzPUGi3vO2z7jdkz67SypFTdmbnyGYxvEvYZdZsMAVA==}
+
   '@prisma/query-plan-executor@6.18.0':
     resolution: {integrity: sha512-jZ8cfzFgL0jReE1R10gT8JLHtQxjWYLiQ//wHmVYZ2rVkFHoh0DT8IXsxcKcFlfKN7ak7k6j0XMNn2xVNyr5cA==}
 
   '@prisma/studio-core@0.8.2':
     resolution: {integrity: sha512-/iAEWEUpTja+7gVMu1LtR2pPlvDmveAwMHdTWbDeGlT7yiv0ZTCPpmeAGdq/Y9aJ9Zj1cEGBXGRbmmNPj022PQ==}
+    peerDependencies:
+      '@types/react': ^18.0.0 || ^19.0.0
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+
+  '@prisma/studio-core@0.9.0':
+    resolution: {integrity: sha512-xA2zoR/ADu/NCSQuriBKTh6Ps4XjU0bErkEcgMfnSGh346K1VI7iWKnoq1l2DoxUqiddPHIEWwtxJ6xCHG6W7g==}
     peerDependencies:
       '@types/react': ^18.0.0 || ^19.0.0
       react: ^18.0.0 || ^19.0.0
@@ -1535,8 +1633,14 @@ packages:
   '@types/node@20.19.26':
     resolution: {integrity: sha512-0l6cjgF0XnihUpndDhk+nyD3exio3iKaYROSgvh/qSevPXax3L8p5DBRFjbvalnwatGgHEQn2R88y2fA3g4irg==}
 
+  '@types/node@20.19.27':
+    resolution: {integrity: sha512-N2clP5pJhB2YnZJ3PIHFk5RkygRX5WO/5f0WC08tp0wd+sv0rsJk3MqWn3CbNmT2J505a5336jaQj4ph1AdMug==}
+
   '@types/node@22.19.2':
     resolution: {integrity: sha512-LPM2G3Syo1GLzXLGJAKdqoU35XvrWzGJ21/7sgZTUpbkBaOasTj8tjwn6w+hCkqaa1TfJ/w67rJSwYItlJ2mYw==}
+
+  '@types/node@22.19.3':
+    resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
 
   '@types/node@24.10.2':
     resolution: {integrity: sha512-WOhQTZ4G8xZ1tjJTvKOpyEVSGgOTvJAfDK3FNFgELyaTpzhdgHVHeqW8V+UJvzF5BT+/B54T/1S2K6gd9c7bbA==}
@@ -2776,6 +2880,19 @@ packages:
       typescript:
         optional: true
 
+  prisma@7.2.0:
+    resolution: {integrity: sha512-jSdHWgWOgFF24+nRyyNRVBIgGDQEsMEF8KPHvhBBg3jWyR9fUAK0Nq9ThUmiGlNgq2FA7vSk/ZoCvefod+a8qg==}
+    engines: {node: ^20.19 || ^22.12 || >=24.0}
+    hasBin: true
+    peerDependencies:
+      better-sqlite3: '>=9.0.0'
+      typescript: '>=5.4.0'
+    peerDependenciesMeta:
+      better-sqlite3:
+        optional: true
+      typescript:
+        optional: true
+
   proper-lockfile@4.1.2:
     resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
 
@@ -3830,11 +3947,17 @@ snapshots:
     transitivePeerDependencies:
       - pg-native
 
+  '@prisma/adapter-pg@7.2.0':
+    dependencies:
+      '@prisma/driver-adapter-utils': 7.2.0
+      pg: 8.16.3
+      postgres-array: 3.0.4
+    transitivePeerDependencies:
+      - pg-native
+
   '@prisma/client-runtime-utils@7.1.0': {}
 
-  '@prisma/client@5.22.0(prisma@5.22.0)':
-    optionalDependencies:
-      prisma: 5.22.0
+  '@prisma/client-runtime-utils@7.2.0': {}
 
   '@prisma/client@7.1.0(prisma@5.22.0)(typescript@5.9.3)':
     dependencies:
@@ -3850,7 +3973,30 @@ snapshots:
       prisma: 7.1.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
       typescript: 5.9.3
 
+  '@prisma/client@7.1.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)':
+    dependencies:
+      '@prisma/client-runtime-utils': 7.1.0
+    optionalDependencies:
+      prisma: 7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+      typescript: 5.9.3
+
+  '@prisma/client@7.2.0(prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3))(typescript@5.9.3)':
+    dependencies:
+      '@prisma/client-runtime-utils': 7.2.0
+    optionalDependencies:
+      prisma: 7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3)
+      typescript: 5.9.3
+
   '@prisma/config@7.1.0':
+    dependencies:
+      c12: 3.1.0
+      deepmerge-ts: 7.1.5
+      effect: 3.18.4
+      empathic: 2.0.0
+    transitivePeerDependencies:
+      - magicast
+
+  '@prisma/config@7.2.0':
     dependencies:
       c12: 3.1.0
       deepmerge-ts: 7.1.5
@@ -3865,7 +4011,31 @@ snapshots:
 
   '@prisma/debug@7.1.0': {}
 
+  '@prisma/debug@7.2.0': {}
+
   '@prisma/dev@0.15.0(typescript@5.9.3)':
+    dependencies:
+      '@electric-sql/pglite': 0.3.2
+      '@electric-sql/pglite-socket': 0.0.6(@electric-sql/pglite@0.3.2)
+      '@electric-sql/pglite-tools': 0.2.7(@electric-sql/pglite@0.3.2)
+      '@hono/node-server': 1.19.6(hono@4.10.6)
+      '@mrleebo/prisma-ast': 0.12.1
+      '@prisma/get-platform': 6.8.2
+      '@prisma/query-plan-executor': 6.18.0
+      foreground-child: 3.3.1
+      get-port-please: 3.1.2
+      hono: 4.10.6
+      http-status-codes: 2.3.0
+      pathe: 2.0.3
+      proper-lockfile: 4.1.2
+      remeda: 2.21.3
+      std-env: 3.9.0
+      valibot: 1.2.0(typescript@5.9.3)
+      zeptomatch: 2.0.2
+    transitivePeerDependencies:
+      - typescript
+
+  '@prisma/dev@0.17.0(typescript@5.9.3)':
     dependencies:
       '@electric-sql/pglite': 0.3.2
       '@electric-sql/pglite-socket': 0.0.6(@electric-sql/pglite@0.3.2)
@@ -3891,9 +4061,15 @@ snapshots:
     dependencies:
       '@prisma/debug': 7.1.0
 
+  '@prisma/driver-adapter-utils@7.2.0':
+    dependencies:
+      '@prisma/debug': 7.2.0
+
   '@prisma/engines-version@5.22.0-44.605197351a3c8bdd595af2d2a9bc3025bca48ea2': {}
 
   '@prisma/engines-version@7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba': {}
+
+  '@prisma/engines-version@7.2.0-4.0c8ef2ce45c83248ab3df073180d5eda9e8be7a3': {}
 
   '@prisma/engines@5.22.0':
     dependencies:
@@ -3909,6 +4085,13 @@ snapshots:
       '@prisma/fetch-engine': 7.1.0
       '@prisma/get-platform': 7.1.0
 
+  '@prisma/engines@7.2.0':
+    dependencies:
+      '@prisma/debug': 7.2.0
+      '@prisma/engines-version': 7.2.0-4.0c8ef2ce45c83248ab3df073180d5eda9e8be7a3
+      '@prisma/fetch-engine': 7.2.0
+      '@prisma/get-platform': 7.2.0
+
   '@prisma/fetch-engine@5.22.0':
     dependencies:
       '@prisma/debug': 5.22.0
@@ -3920,6 +4103,12 @@ snapshots:
       '@prisma/debug': 7.1.0
       '@prisma/engines-version': 7.1.0-6.ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba
       '@prisma/get-platform': 7.1.0
+
+  '@prisma/fetch-engine@7.2.0':
+    dependencies:
+      '@prisma/debug': 7.2.0
+      '@prisma/engines-version': 7.2.0-4.0c8ef2ce45c83248ab3df073180d5eda9e8be7a3
+      '@prisma/get-platform': 7.2.0
 
   '@prisma/get-platform@5.22.0':
     dependencies:
@@ -3933,9 +4122,19 @@ snapshots:
     dependencies:
       '@prisma/debug': 7.1.0
 
+  '@prisma/get-platform@7.2.0':
+    dependencies:
+      '@prisma/debug': 7.2.0
+
   '@prisma/query-plan-executor@6.18.0': {}
 
   '@prisma/studio-core@0.8.2(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
+    dependencies:
+      '@types/react': 19.2.7
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+
+  '@prisma/studio-core@0.9.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
       '@types/react': 19.2.7
       react: 19.2.1
@@ -4377,7 +4576,15 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
+  '@types/node@20.19.27':
+    dependencies:
+      undici-types: 6.21.0
+
   '@types/node@22.19.2':
+    dependencies:
+      undici-types: 6.21.0
+
+  '@types/node@22.19.3':
     dependencies:
       undici-types: 6.21.0
 
@@ -4388,13 +4595,13 @@ snapshots:
   '@types/nodemailer@7.0.4':
     dependencies:
       '@aws-sdk/client-sesv2': 3.947.0
-      '@types/node': 20.19.26
+      '@types/node': 22.19.2
     transitivePeerDependencies:
       - aws-crt
 
   '@types/oauth@0.9.6':
     dependencies:
-      '@types/node': 20.19.26
+      '@types/node': 22.19.2
 
   '@types/passport-google-oauth20@2.0.17':
     dependencies:
@@ -5722,6 +5929,22 @@ snapshots:
       - react
       - react-dom
 
+  prisma@7.2.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)(typescript@5.9.3):
+    dependencies:
+      '@prisma/config': 7.2.0
+      '@prisma/dev': 0.17.0(typescript@5.9.3)
+      '@prisma/engines': 7.2.0
+      '@prisma/studio-core': 0.9.0(@types/react@19.2.7)(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      mysql2: 3.15.3
+      postgres: 3.4.7
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - magicast
+      - react
+      - react-dom
+
   proper-lockfile@4.1.2:
     dependencies:
       graceful-fs: 4.2.11
@@ -6070,6 +6293,24 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 20.19.26
+      acorn: 8.15.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.9.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
+  ts-node@10.9.2(@types/node@20.19.27)(typescript@5.9.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.12
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.19.27
       acorn: 8.15.0
       acorn-walk: 8.3.4
       arg: 4.1.3

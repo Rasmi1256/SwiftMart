@@ -1,0 +1,651 @@
+// =========================================================
+// 1. CONFIGURATION
+// =========================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================================================
+// 2. ENUMS
+// =========================================================
+
+enum OrderStatus {
+  pending
+  placed
+  assigned
+  picked_up
+  delivered
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum DiscountType {
+  percentage
+  fixed_amount
+}
+
+enum CouponScope {
+  all
+  category
+  product
+}
+
+enum TransactionStatus {
+  pending
+  succeeded
+  failed
+  refunded
+}
+
+enum PaymentGateway {
+  stripe_mock
+}
+
+// =========================================================
+// 3. USER SERVICE DOMAIN
+// =========================================================
+
+model User {
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  passwordHash           String?
+  firstName              String?
+  lastName               String?
+  phoneNumber            String?   @unique
+  googleId               String?   @unique
+  otp                    String?
+  otpExpires             DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  
+  // Relations
+  addresses              Address[]
+  orders                 Order[]
+  transactions           Transaction[]
+  notifications          InAppNotification[]
+  notificationPreference NotificationPreference?
+  
+  // Delivery Relation (User can be a Driver)
+  driverProfile          Driver? 
+
+  @@map("users")
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  zipCode      String
+  country      String
+  latitude     Float?
+  longitude    Float?
+  isDefault    Boolean  @default(false)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+// =========================================================
+// 4. PRODUCT SERVICE DOMAIN
+// =========================================================
+
+model Category {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String    @unique
+  description      String?
+  imageUrl         String?
+  slug             String    @unique
+
+  parentCategoryId String?   @db.Uuid
+  parentCategory   Category? @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  children         Category[] @relation("CategoryHierarchy")
+
+  products         Product[]  @relation("MainCategory")
+  subProducts      Product[]  @relation("SubCategory")
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Product {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String
+  description      String
+
+  // Price Fields
+  priceCurrent     Float
+  priceUnit        String
+  priceCurrency    String?   @default("USD")
+  pricePrevious    Float?
+  priceEffectiveDate DateTime?
+  unit             String
+
+  // Category Relations
+  categoryId       String    @db.Uuid
+  category         Category  @relation("MainCategory", fields: [categoryId], references: [id])
+  
+  subCategoryId    String?   @db.Uuid
+  subCategory      Category? @relation("SubCategory", fields: [subCategoryId], references: [id])
+
+  brand            String?
+  SKU              String    @unique
+  imageUrl         String
+  thumbnailUrl     String?
+
+  // Metadata
+  nutritionalInfo  Json?
+  tags             String[]
+  
+  // Dimensions
+  weightValue      Float?
+  weightUnit       String?
+  dimensionLength  Float?
+  dimensionWidth   Float?
+  dimensionHeight  Float?
+  dimensionUnit    String?
+
+  averageRating    Float     @default(0)
+  reviewCount      Int       @default(0)
+  isAvailable      Boolean?  @default(true)
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  // Cross-Service Relations
+  orderItems       OrderItem[]
+  searchIndex      SearchIndex[]
+  inventory        InventoryItem?
+
+  @@map("products")
+}
+
+// =========================================================
+// 5. INVENTORY SERVICE DOMAIN
+// =========================================================
+
+model InventoryItem {
+  id            String   @id @default(uuid())
+
+  // Link to Product
+  productId     String   @unique @db.Uuid
+  product       Product  @relation(fields: [productId], references: [id])
+
+  quantity      Int      @default(0)
+  location      String
+  minStockLevel Int      @default(0)
+  maxStockLevel Int?
+
+  stockMovements StockMovement[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([productId])
+  @@index([location])
+  @@index([quantity])
+  @@map("inventory_items")
+}
+
+model StockMovement {
+  id              String        @id @default(uuid())
+
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  quantityChange  Int
+  reason          String
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  @@index([inventoryItemId])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+// =========================================================
+// 6. ORDER SERVICE DOMAIN
+// =========================================================
+
+model Order {
+  id                String    @id @default(uuid())
+
+  // Relations
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+
+  // Link to Delivery (One-to-One)
+  delivery          Delivery?
+  stop              Stop?
+
+  shippingAddressId String?
+
+  // Financials
+  totalAmount       Float
+  discountAmount    Float     @default(0)
+  finalTotal        Float
+
+  // Status & Payment
+  paymentMethod     String?
+  paymentStatus     PaymentStatus @default(pending)
+  status            OrderStatus   @default(pending)
+  couponCode        String?
+
+  // Time Window for Delivery (Phase 2)
+  timeWindowStart   DateTime?
+  timeWindowEnd     DateTime?
+  priority          String    @default("NORMAL") // URGENT, NORMAL, FLEXIBLE
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  items             OrderItem[]
+  transactions      Transaction[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([timeWindowStart])
+  @@index([timeWindowEnd])
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String    @id @default(uuid())
+  
+  orderId         String
+  order           Order     @relation(fields: [orderId], references: [id])
+  
+  productId       String    @db.Uuid
+  product         Product   @relation(fields: [productId], references: [id])
+
+  productName     String
+  productImageUrl String?
+  unitPrice       Float
+  quantity        Int
+  discountApplied Float     @default(0)
+
+  createdAt       DateTime  @default(now())
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// =========================================================
+// 7. DELIVERY SERVICE DOMAIN
+// =========================================================
+
+model Driver {
+  id              String   @id @default(uuid())
+
+  // Link to User Service
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id])
+
+  name            String
+  vehicleType     String   @default("BIKE")
+  status          String   @default("AVAILABLE") // AVAILABLE, ON_DELIVERY, OFFLINE
+
+  currentLocation Json? // {lat, lng}
+
+  // Partner State Model fields
+  currentLoad     Int      @default(0)
+  maxCapacity     Int      @default(3)
+  batteryLevel    Int      @default(100)
+  lastUpdated     DateTime @default(now())
+
+  // Route Optimization fields
+  vehicleId       String?
+  vehicle         Vehicle? @relation(fields: [vehicleId], references: [id])
+  shiftStart      DateTime?
+  shiftEnd        DateTime?
+  skills          String[] @default([]) // Special skills/certifications
+  preferences     Json?    // Driver preferences (areas, times, etc.)
+
+  assignedDeliveries Delivery[]
+  routes          Route[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("drivers")
+}
+
+model Delivery {
+  id                   String    @id @default(uuid())
+
+  // Link to Order
+  orderId              String    @unique
+  order                Order     @relation(fields: [orderId], references: [id])
+
+  // Link to Driver
+  driverId             String
+  driver               Driver    @relation(fields: [driverId], references: [id])
+
+  status               String    @default("pending")
+  estimatedDeliveryTime DateTime?
+  actualDeliveryTime   DateTime?
+
+  deliveryAddress      Json 
+  notes                String?
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([driverId])
+  @@index([status])
+  @@map("deliveries")
+}
+
+model PartnerLocation {
+  id         String   @id @default(uuid())
+
+  partnerId  String
+  orderId    String?
+  lat        Float
+  lng        Float
+  speed      Float?
+  heading    Float?
+  accuracy   Float?
+  timestamp  DateTime
+  confidence String   @default("ACTUAL") // ACTUAL, ESTIMATED, INTERPOLATED
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([partnerId])
+  @@index([timestamp])
+  @@map("partner_locations")
+}
+
+model LocationHistory {
+  id         String   @id @default(uuid())
+
+  partnerId  String
+  orderId    String?
+  lat        Float
+  lng        Float
+  speed      Float?
+  heading    Float?
+  accuracy   Float?
+  timestamp  DateTime
+  confidence String   @default("ACTUAL") // ACTUAL, ESTIMATED, INTERPOLATED
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([partnerId])
+  @@index([timestamp])
+  @@map("location_history")
+}
+
+// =========================================================
+// 8. SEARCH SERVICE DOMAIN
+// =========================================================
+
+model SearchIndex {
+  id        String   @id @default(cuid()) @map("_id")
+  
+  productId String   @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  name      String
+  category  String
+  tags      String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+  @@index([category])
+  @@index([tags])
+  @@map("search_indices")
+}
+
+// =========================================================
+// 9. COUPON SERVICE DOMAIN
+// =========================================================
+
+model Coupon {
+  id                 String       @id @default(uuid()) @db.Uuid
+  code               String       @unique
+  description        String
+  discountType       DiscountType
+  discountValue      Float
+  minimumOrderAmount Float        @default(0)
+  maxUses            Int          @default(999999999)
+  usesCount          Int          @default(0)
+  validFrom          DateTime     @default(now())
+  validUntil         DateTime
+  isActive           Boolean      @default(true)
+
+  applicableTo       CouponScope  @default(all)
+  applicableId       String?      
+
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@map("coupons")
+}
+
+// =========================================================
+// 10. PAYMENT SERVICE DOMAIN
+// =========================================================
+
+model Transaction {
+  id                   String            @id @default(uuid()) @db.Uuid
+  
+  orderId              String
+  order                Order             @relation(fields: [orderId], references: [id])
+  
+  userId               String            
+  user                 User              @relation(fields: [userId], references: [id])
+  
+  amount               Int               // stored in cents
+  currency             String            @default("USD")
+  paymentGateway       PaymentGateway    @default(stripe_mock)
+  gatewayTransactionId String            @unique
+  status               TransactionStatus @default(pending)
+
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@map("transactions")
+}
+
+// =========================================================
+// 11. NOTIFICATION SERVICE DOMAIN
+// =========================================================
+
+model InAppNotification {
+  id        String   @id @default(uuid())
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  type      String
+  message   String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("in_app_notifications")
+}
+
+model NotificationPreference {
+  id           String   @id @default(uuid())
+
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id])
+
+  emailEnabled Boolean  @default(true)
+  smsEnabled   Boolean  @default(false)
+  inAppEnabled Boolean  @default(true)
+  pushEnabled  Boolean  @default(false)
+
+  emailAddress String?
+  phoneNumber  String?
+  fcmToken     String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("notification_preferences")
+}
+
+// =========================================================
+// 12. ROUTE OPTIMIZATION DOMAIN
+// =========================================================
+
+model Vehicle {
+  id              String   @id @default(uuid())
+
+  licensePlate    String   @unique
+  type            String   @default("BIKE") // BIKE, CAR, VAN, TRUCK
+  capacity        Int      @default(3) // Number of orders/packages
+  fuelEfficiency  Float?   // km per liter
+  currentLocation Json?    // {lat, lng}
+
+  // Relations
+  drivers         Driver[]
+  routes          Route[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([type])
+  @@map("vehicles")
+}
+
+model Route {
+  id              String   @id @default(uuid())
+
+  driverId        String
+  driver          Driver   @relation(fields: [driverId], references: [id])
+
+  vehicleId       String
+  vehicle         Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  status          String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED, CANCELLED
+
+  totalDistance   Float    @default(0) // in km
+  totalTime       Int      @default(0) // in minutes
+  estimatedStart  DateTime?
+  actualStart     DateTime?
+  estimatedEnd    DateTime?
+  actualEnd       DateTime?
+
+  // Relations
+  stops           Stop[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([driverId])
+  @@index([status])
+  @@map("routes")
+}
+
+model Stop {
+  id               String   @id @default(uuid())
+
+  routeId          String
+  route            Route    @relation(fields: [routeId], references: [id])
+
+  orderId          String   @unique
+  order            Order    @relation(fields: [orderId], references: [id])
+
+  sequence         Int      // Order in the route (1, 2, 3, ...)
+  latitude         Float
+  longitude        Float
+
+  serviceTime      Int      @default(5) // Service time in minutes
+  estimatedArrival DateTime?
+  actualArrival    DateTime?
+
+  status           String   @default("PENDING") // PENDING, ARRIVED, COMPLETED, SKIPPED
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([routeId])
+  @@index([orderId])
+  @@index([sequence])
+  @@map("stops")
+}
+
+model TrafficPattern {
+  id               String   @id @default(uuid())
+
+  routeSegment     String   // "start_lat,start_lng:end_lat,end_lng"
+  timeOfDay        String   // "MORNING", "AFTERNOON", "EVENING", "NIGHT"
+  dayOfWeek        String   // "MONDAY", "TUESDAY", etc.
+
+  historicalSpeed  Float    // Average speed in km/h
+  congestionFactor Float    @default(1.0) // Multiplier for travel time
+  sampleSize       Int      @default(1) // Number of observations
+
+  // Weather impact factors (Phase 2)
+  weatherImpact    Float    @default(1.0) // Weather multiplier for travel time
+  precipitation    Float?   // mm/hour
+  visibility       Float?   // meters
+
+  lastUpdated      DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  @@index([routeSegment])
+  @@index([timeOfDay])
+  @@index([dayOfWeek])
+  @@map("traffic_patterns")
+}
+
+model WeatherData {
+  id               String   @id @default(uuid())
+
+  location         String   // "lat,lng" or city name
+  timestamp        DateTime
+
+  temperature      Float    // Celsius
+  humidity         Float    // Percentage
+  precipitation    Float    // mm/hour
+  windSpeed        Float    // km/h
+  windDirection    Float?   // degrees
+  visibility       Float    // meters
+
+  // Weather conditions
+  condition        String   // "CLEAR", "RAIN", "SNOW", "FOG", etc.
+  severity         String   @default("MILD") // "MILD", "MODERATE", "SEVERE"
+
+  // Impact on routing
+  speedMultiplier  Float    @default(1.0) // How much weather slows down travel
+  riskFactor       Float    @default(1.0) // Safety risk multiplier
+
+  source           String   @default("OPENWEATHER") // API source
+  createdAt        DateTime @default(now())
+
+  @@index([location])
+  @@index([timestamp])
+  @@index([condition])
+  @@map("weather_data")
+}

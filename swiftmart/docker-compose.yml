@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: swiftmart_postgres
+    environment:
+      POSTGRES_DB: swiftmart
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - swiftmart_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: swiftmart_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - swiftmart_network
+
+  ai-ml-package:
+    build:
+      context: ./ai-ml
+      dockerfile: ai-ml-package/Dockerfile
+    container_name: swiftmart_ai_ml_package
+    ports:
+      - "3011:3005" # recommendation-service
+      - "3012:3006" # demand-forecasting-service
+      - "3013:3007" # pricing-service
+      - "3014:3009" # chatbot-service
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/swiftmart
+    depends_on:
+      - postgres
+    networks:
+      - swiftmart_network
+    volumes:
+      - ./swiftmart/ai-ml:/app
+
+  weather-service:
+    build:
+      context: ./backend/packages/weather-service
+    container_name: swiftmart_weather_service
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/swiftmart
+      - REDIS_URL=redis://redis:6379
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-demo_key}
+    ports:
+      - "3018:3018"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - swiftmart_network
+
+  driver-state-service:
+    build:
+      context: ./backend/packages/driver-state-service
+    container_name: swiftmart_driver_state_service
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/swiftmart
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "3019:3019"
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - swiftmart_network
+
+networks:
+  swiftmart_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,16 @@
+{
+  "name": "graphhopper-service",
+  "version": "1.0.0",
+  "description": "GraphHopper integration for advanced routing with live traffic",
+  "main": "src/server.py",
+  "scripts": {
+    "start": "python src/server.py",
+    "dev": "python src/server.py",
+    "test": "pytest"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "keywords": ["routing", "graphhopper", "traffic", "optimization"],
+  "author": "SwiftMart",
+  "license": "ISC"
+}
